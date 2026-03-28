@@ -1,0 +1,184 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  avatar    String?
+  timezone  String   @default("UTC")
+  language  String   @default("en")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  appointments Appointment[]
+  reminders    Reminder[]
+  calendarIntegrations CalendarIntegration[]
+  analytics     Analytics[]
+
+  @@map("users")
+}
+
+model Appointment {
+  id           String   @id @default(cuid())
+  title        String
+  description  String?
+  startTime    DateTime
+  endTime      DateTime
+  location     String?
+  isRecurring  Boolean  @default(false)
+  recurrenceRule String?
+  status       AppointmentStatus @default(SCHEDULED)
+  priority     Priority @default(MEDIUM)
+  timezone     String   @default("UTC")
+  
+  // AI processed data
+  aiSummary    String?
+  aiKeywords   String[] // JSON array
+  aiConfidence Float?
+  
+  // Relations
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  
+  calendarEvents CalendarEvent[]
+  reminders    Reminder[]
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("appointments")
+}
+
+model CalendarIntegration {
+  id        String   @id @default(cuid())
+  provider  CalendarProvider
+  externalId String
+  refreshToken String?
+  isActive  Boolean  @default(true)
+  syncEnabled Boolean @default(true)
+  
+  // Relations
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("calendar_integrations")
+}
+
+model CalendarEvent {
+  id           String   @id @default(cuid())
+  externalId   String
+  provider     CalendarProvider
+  appointmentId String
+  appointment  Appointment @relation(fields: [appointmentId], references: [id])
+  
+  startTime    DateTime
+  endTime      DateTime
+  summary      String
+  description  String?
+  location     String?
+  status       String
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([externalId, provider])
+  @@map("calendar_events")
+}
+
+model Reminder {
+  id           String     @id @default(cuid())
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  
+  type         ReminderType
+  time         DateTime   // When reminder should be sent
+  message      String
+  isSent       Boolean    @default(false)
+  channel      ReminderChannel @default(EMAIL)
+  
+  // AI generated reminder content
+  aiMessage    String?
+  aiTone       ReminderTone?
+  
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@map("reminders")
+}
+
+model Analytics {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  
+  date      DateTime // Date of analytics
+  metric    String   // Metric name
+  value     Float    // Metric value
+  metadata  String?  // JSON metadata
+  
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date, metric])
+  @@map("analytics")
+}
+
+// Enums
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum CalendarProvider {
+  GOOGLE
+  OUTLOOK
+  APPLE
+  MICROSOFT
+}
+
+enum ReminderType {
+  BEFORE_START
+  AT_START
+  BEFORE_END
+  FOLLOW_UP
+  CUSTOM
+}
+
+enum ReminderChannel {
+  EMAIL
+  SMS
+  PUSH
+  WEBHOOK
+}
+
+enum ReminderTone {
+  FORMAL
+  CASUAL
+  FRIENDLY
+  URGENT
+  ENCOURAGING
+}
