@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { log } from '../src/utils/logger';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -7,10 +8,12 @@ async function main() {
   log.info('🌱 Starting database seeding...');
 
   // Create test users
+  const hashedPassword = await bcrypt.hash('demo123', 12);
+  
   const user1 = await prisma.user.create({
     data: {
       email: 'demo@example.com',
-      password: 'hashed_password_here', // In real app, use bcrypt.hashSync
+      password: hashedPassword,
       name: 'Demo User',
       timezone: 'UTC',
       language: 'en'

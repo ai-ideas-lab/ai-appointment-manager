@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { Appointment, AppointmentStatus, Priority } from '@prisma/client';
+import { Appointment } from '@prisma/client';
 import { prisma } from '../utils/prisma';
 
 export class AppointmentAIService {

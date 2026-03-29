@@ -1,13 +1,11 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Migration for initial database schema
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
 
 generator client {
   provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -26,7 +24,7 @@ model User {
   reminders    Reminder[]
   calendarIntegrations CalendarIntegration[]
   analytics     Analytics[]
-  
+
   @@map("users")
 }
 
@@ -113,7 +111,7 @@ model Reminder {
   time         DateTime   // When reminder should be sent
   message      String
   isSent       Boolean    @default(false)
-  channel      String
+  channel      String     @default('EMAIL')
   
   // AI generated reminder content
   aiMessage    String?
@@ -140,6 +138,3 @@ model Analytics {
   @@unique([userId, date, metric])
   @@map("analytics")
 }
-
-// Enums
-// String enums (SQLite workaround) - documentation only

@@ -216,7 +216,7 @@ router.post('/batch/:appointmentId', asyncHandler(async (req, res) => {
     message: 'Batch reminders created successfully',
     reminders: createdReminders,
     total: createdReminders.length
-  }));
+  });
 }));
 
 // Get reminder delivery status

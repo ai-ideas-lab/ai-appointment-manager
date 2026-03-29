@@ -5,6 +5,7 @@ import { log } from '../utils/logger';
 import { prisma } from '../utils/prisma';
 import { AppointmentAIService } from '../services/appointmentAI';
 import { MultiModalRecognitionService, RecognitionResult } from '../services/multiModalRecognition';
+import { AuthRequest } from '../middleware/auth';
 
 const router = Router();
 const appointmentAI = new AppointmentAIService();
@@ -26,8 +27,8 @@ router.get('/', [
   query('endDate').optional().isISO8601().withMessage('End date must be valid ISO date'),
   query('status').optional().isIn(['SCHEDULED', 'CONFIRMED', 'CANCELLED', 'COMPLETED', 'NO_SHOW']).withMessage('Invalid status'),
   query('priority').optional().isIn(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).withMessage('Invalid priority'),
-], asyncHandler(async (req, res) => {
-  const { userId } = req as any; // TODO: Get from JWT token
+], asyncHandler(async (req: AuthRequest, res) => {
+  const userId = req.user!.id;
   const { startDate, endDate, status, priority } = req.query;
   
   log.info('Fetching appointments:', { userId, startDate, endDate, status, priority });
@@ -71,9 +72,9 @@ router.get('/', [
 }));
 
 // Get a specific appointment
-router.get('/:id', asyncHandler(async (req, res) => {
+router.get('/:id', asyncHandler(async (req: AuthRequest, res) => {
   const { id } = req.params;
-  const { userId } = req as any; // TODO: Get from JWT token
+  const userId = req.user!.id;
   
   log.info('Fetching appointment:', { id, userId });
   
@@ -108,9 +109,9 @@ router.get('/:id', asyncHandler(async (req, res) => {
 }));
 
 // Create a new appointment
-router.post('/', appointmentValidation, asyncHandler(async (req, res) => {
+router.post('/', appointmentValidation, asyncHandler(async (req: AuthRequest, res) => {
   const { title, description, startTime, endTime, location, priority = 'MEDIUM', timezone = 'UTC' } = req.body;
-  const { userId } = req as any; // TODO: Get from JWT token
+  const userId = req.user!.id;
   
   log.info('Creating appointment:', { title, startTime, endTime, userId });
   
@@ -171,10 +172,10 @@ router.post('/', appointmentValidation, asyncHandler(async (req, res) => {
 }));
 
 // Update an appointment
-router.put('/:id', appointmentValidation, asyncHandler(async (req, res) => {
+router.put('/:id', appointmentValidation, asyncHandler(async (req: AuthRequest, res) => {
   const { id } = req.params;
   const { title, description, startTime, endTime, location, priority, status } = req.body;
-  const { userId } = req as any; // TODO: Get from JWT token
+  const userId = req.user!.id;
   
   log.info('Updating appointment:', { id, userId });
   
@@ -235,9 +236,9 @@ router.put('/:id', appointmentValidation, asyncHandler(async (req, res) => {
 }));
 
 // Delete an appointment
-router.delete('/:id', asyncHandler(async (req, res) => {
+router.delete('/:id', asyncHandler(async (req: AuthRequest, res) => {
   const { id } = req.params;
-  const { userId } = req as any; // TODO: Get from JWT token
+  const userId = req.user!.id;
   
   log.info('Deleting appointment:', { id, userId });
   
@@ -270,9 +271,9 @@ router.delete('/:id', asyncHandler(async (req, res) => {
 router.post('/recognize', [
   body('type').isIn(['screenshot', 'sms', 'email', 'manual']).withMessage('Invalid recognition type'),
   body('data').notEmpty().withMessage('Data is required'),
-], asyncHandler(async (req, res) => {
+], asyncHandler(async (req: AuthRequest, res) => {
   const { type, data } = req.body;
-  const { userId } = req as any; // TODO: Get from JWT token
+  const userId = req.user!.id;
   
   log.info('Processing recognition request:', { type, userId });
   
@@ -306,9 +307,9 @@ router.post('/batch-recognize', [
   body('recognitions').isArray().withMessage('Recognitions must be an array'),
   body('recognitions.*.type').isIn(['screenshot', 'sms', 'email', 'manual']).withMessage('Invalid recognition type'),
   body('recognitions.*.data').notEmpty().withMessage('Data is required'),
-], asyncHandler(async (req, res) => {
+], asyncHandler(async (req: AuthRequest, res) => {
   const { recognitions } = req.body;
-  const { userId } = req as any; // TODO: Get from JWT token
+  const userId = req.user!.id;
   
   log.info('Processing batch recognition:', { count: recognitions.length, userId });
   
@@ -322,9 +323,9 @@ router.post('/batch-recognize', [
 }));
 
 // AI-powered appointment analysis
-router.post('/:id/analyze', asyncHandler(async (req, res) => {
+router.post('/:id/analyze', asyncHandler(async (req: AuthRequest, res) => {
   const { id } = req.params;
-  const { userId } = req as any; // TODO: Get from JWT token
+  const userId = req.user!.id;
   
   log.info('Analyzing appointment:', { id, userId });
   
@@ -376,10 +377,10 @@ router.post('/:id/analyze', asyncHandler(async (req, res) => {
 router.post('/:id/reschedule-message', [
   body('newTime').isISO8601().withMessage('New time must be a valid ISO date'),
   body('reason').optional().isString().withMessage('Reason must be a string'),
-], asyncHandler(async (req, res) => {
+], asyncHandler(async (req: AuthRequest, res) => {
   const { id } = req.params;
   const { newTime, reason } = req.body;
-  const { userId } = req as any; // TODO: Get from JWT token
+  const userId = req.user!.id;
   
   log.info('Generating reschedule message:', { id, newTime, userId });
   
@@ -418,8 +419,8 @@ router.post('/:id/reschedule-message', [
 }));
 
 // Get appointment analytics
-router.get('/analytics/overview', asyncHandler(async (req, res) => {
-  const { userId } = req as any; // TODO: Get from JWT token
+router.get('/analytics/overview', asyncHandler(async (req: AuthRequest, res) => {
+  const userId = req.user!.id;
   
   log.info('Fetching appointment analytics:', { userId });
   
