@@ -17,8 +17,8 @@ module.exports = {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov'],
   testTimeout: 30000,
-  moduleNameMapping: {
-    '^@/(.*)$': '<rootDir>/src/',
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
   },
   verbose: true,
   testPathIgnorePatterns: [

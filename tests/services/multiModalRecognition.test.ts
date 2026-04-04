@@ -1,4 +1,6 @@
-import { multiModalRecognition } from '../../src/services/multiModalRecognition';
+import { MultiModalRecognitionService } from '../../src/services/multiModalRecognition';
+
+const multiModalRecognition = new MultiModalRecognitionService();
 import { createTestAppointment } from '../setup';
 
 describe('MultiModal Recognition Service', () => {
@@ -206,12 +208,12 @@ describe('MultiModal Recognition Service', () => {
       const results = await multiModalRecognition.batchRecognition(recognitionTasks);
       
       expect(results).toHaveLength(3);
-      expect(results.every(r => r.type)).toBe(true);
+      expect(results.every((r: RecognitionResult) => r.type)).toBe(true);
       
       // 验证不同类型的识别结果
-      const screenshotResults = results.filter(r => r.type === 'screenshot');
-      const smsResults = results.filter(r => r.type === 'sms');
-      const emailResults = results.filter(r => r.type === 'email');
+      const screenshotResults = results.filter((r: RecognitionResult) => r.type === 'screenshot');
+      const smsResults = results.filter((r: RecognitionResult) => r.type === 'sms');
+      const emailResults = results.filter((r: RecognitionResult) => r.type === 'email');
       
       expect(screenshotResults.length).toBe(1);
       expect(smsResults.length).toBe(1);
